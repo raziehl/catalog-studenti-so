@@ -3,20 +3,20 @@
 function add_student() {
   while true; do
     echo
-    read -p "Nume si prenume student:" name
+    read -p "Nume si prenume student: " name
     read -p "Grupa:" group
-    read -p "Enrollment Date: (dd/mm/yyyy)" bdate
-    data=$((RANDOM)):$name:$group:$bdate
+    read -p "Enrollment Date (dd/mm/yyyy): " enrollment_date
+    data=$((RANDOM)):$name:$group:$enrollment_date
     echo
     read -p "The data is correct?(Y/n)" yn
     yn=${yn:-y}
     if [ $yn != Y ] && [ $yn != y ]; then
       return
     fi
-    echo "Adding info to the database..."
+    echo -e "\nAdding info to the database..."
     echo $data >> $students
-    sort -u students -o $students
-    echo "Do you want to continue?(Y/n)"
+    sort -u $students -o $students
+    echo -e "\nDo you want to continue?(Y/n)"
     read yn
     yn=${yn:-y}
     if [ ! $yn = Y ] && [ ! $yn = y ]; then
@@ -29,13 +29,13 @@ function grade_student() {
   while true; do
     echo
     echo 'What student do you want to grade?'
-    select STUDENT in $(cat $students); do
+    select STUDENT in $(cat $students | sed -e 's/ //g' | cut -d ':' -f 1,2); do
       echo
-      echo Selected student: $STUDENT
-      student_id=$(echo $STUDENT | cut -d ':' -f 1)
+      echo Selected student: "$STUDENT"
+      student_id=$(echo "$STUDENT" | cut -d ':' -f 1)
       echo
-      read -p "Materie:" subject
-      read -p "Nota:" grade
+      read -p "Materie: " subject
+      read -p "Nota: " grade
       grade_entry=$((RANDOM)):$subject:$grade:$student_id
       echo
       read -p "The data is correct?(Y/n)" yn
@@ -44,7 +44,7 @@ function grade_student() {
         return
       fi
       echo "$grade_entry" >> $grades
-      sort -u grades -o $grades
+      sort -u $grades -o $grades
       echo
       echo "Do you want to continue?(Y/n)"
       read yn
@@ -57,8 +57,7 @@ function grade_student() {
 }
 
 function remove_student() {
-  echo "Deleting info..."
-  echo -e "Enter name to delete (<ENTER> to exit):\c"
+  echo -e "\nEnter name to delete (<ENTER> to exit): \c"
   read name
   if [ "$name" = "" ]; then 
     continue
@@ -75,8 +74,9 @@ function remove_student() {
 }
 
 function remove_grade() {
-  echo "Deleting info..."
-  echo -e "Enter name to delete (<ENTER> to exit):\c"
+  echo
+  cat $grades
+  echo -e "\nEnter id of grade to delete (<ENTER> to exit): \c"
   read id
   if [ "$id" = "" ]; then 
     continue
@@ -84,7 +84,7 @@ function remove_grade() {
   sed -e /"$id"/d $grades > tmp
   mv tmp $grades
   cat $grades
-  read -p "Press ENTER to continue..." key
+  echo "\nGrade removed"
 }
 
 
